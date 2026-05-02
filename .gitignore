@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Production Builds
+frontend/dist/
+frontend/build/
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment Variables & Keys
+.env
+*.json
+!frontend/package.json
+!frontend/tsconfig.json
+!frontend/public/manifest.json
+!backend/daily_questions.json
+!backend/videos.json
+
+# Ignore specifically the service account key
+serviceAccountKey.json
+serviceAccountKey.min.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# OS Files
+.DS_Store
+Thumbs.db

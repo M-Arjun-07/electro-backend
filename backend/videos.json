@@ -1,0 +1,71 @@
+{
+  "register": [
+    {
+      "id": "vid1",
+      "title": "How to Register to Vote in India",
+      "url": "https://youtu.be/BJCjsgEiQwg?si=r5yHGMyAWku9W9ZS",
+      "duration": "1:27",
+      "xp": 20
+    },
+    {
+      "id": "vid2",
+      "title": "Updating your Voter ID Details",
+      "url": "https://youtube.com/shorts/zEi9OSen3nI?si=oZAoFgKxOGOLbPnO",
+      "duration": "0:38",
+      "xp": 20
+    },
+    {
+      "id": "vid3",
+      "title": "First-time Voter's Guide",
+      "url": "https://youtu.be/-ucLifzB3HM?si=z84SI3kMSM3uEFOp",
+      "duration": "1:28",
+      "xp": 20
+    }
+  ],
+  "epic": [
+    {
+      "id": "vid4",
+      "title": "How to Download Digital EPIC Card",
+      "url": "https://youtube.com/shorts/oq2fbx3Bpic?si=wKoO55qrPqGJcAfN",
+      "duration": "0:29",
+      "xp": 20
+    },
+    {
+      "id": "vid5",
+      "title": "Lost Voter ID? Here's what to do",
+      "url": "https://youtube.com/shorts/2ui5Zk-9UYM?si=sVgTvW4H5Y24xT7D",
+      "duration": "0:15",
+      "xp": 20
+    }
+  ],
+  "learn": [
+    {
+      "id": "vid_evm",
+      "title": "Electronic Voting Machine (EVM) Explained",
+      "url": "https://youtu.be/n52wNlSl6iI?si=PvQiJOqb6aIcDqB2",
+      "duration": "5:42",
+      "xp": 20
+    },
+    {
+      "id": "vid_vvpat",
+      "title": "VVPAT: Your Vote, Your Verification",
+      "url": "https://youtu.be/OM_SHBkQv5o?si=crjdL9jqkibIWZ4R",
+      "duration": "1:40",
+      "xp": 20
+    },
+    {
+      "id": "vid_nota",
+      "title": "What is NOTA?",
+      "url": "https://youtu.be/enJ7HDAHUKk?si=Ru0GiQalQmNkG-fw",
+      "duration": "2:19",
+      "xp": 20
+    },
+    {
+      "id": "vid_flow",
+      "title": "The Voting Process Flow",
+      "url": "https://youtu.be/MAcAC-oB8UA?si=a2cbZK1t93K5MKlgN",
+      "duration": "1:54",
+      "xp": 20
+    }
+  ]
+}
