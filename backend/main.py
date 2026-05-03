@@ -10,7 +10,26 @@ import os
 import json
 import random
 
-app = FastAPI(title="The Voter's Campaign API")
+app = FastAPI(
+    title="The Voter's Campaign API",
+    description="Backend API for gamified voter education platform",
+    version="1.0.0"
+)
+
+# Cache for daily questions to improve efficiency
+_QUESTIONS_CACHE = None
+_VIDEOS_CACHE = None
+
+def get_daily_questions():
+    """Load and cache daily questions from JSON file."""
+    global _QUESTIONS_CACHE
+    if _QUESTIONS_CACHE is None:
+        try:
+            with open("daily_questions.json", "r") as f:
+                _QUESTIONS_CACHE = json.load(f)
+        except Exception:
+            return {"questions": [], "quests": []}
+    return _QUESTIONS_CACHE
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +40,19 @@ app.add_middleware(
 )
 
 # Helper for Firebase Auth
-def get_uid(authorization: str = Header(None)):
+def get_uid(authorization: str = Header(None)) -> str:
+    """
+    Middleware to verify Firebase ID token and return user ID.
+    
+    Args:
+        authorization: Bearer token from the Authorization header.
+    
+    Returns:
+        The verified UID.
+        
+    Raises:
+        HTTPException: If token is missing, invalid, or expired.
+    """
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization Header")
     try:
@@ -55,6 +86,7 @@ class QuizResult(BaseModel):
 
 @app.get("/user/me")
 async def get_user_profile(uid: str = Depends(get_uid)):
+    """Fetch the current user's profile from Firestore."""
     user_ref = db.collection("users").document(uid)
     user_doc = user_ref.get()
     if not user_doc.exists:
@@ -62,13 +94,27 @@ async def get_user_profile(uid: str = Depends(get_uid)):
     return user_doc.to_dict()
 
 @app.post("/user/update")
+@app.post("/signup")
 async def update_user_profile(profile: UserProfileUpdate, uid: str = Depends(get_uid)):
+    """Update user profile or initialize during signup."""
     user_ref = db.collection("users").document(uid)
-    user_ref.update(profile.dict(exclude_unset=True))
-    return {"status": "success"}
+    try:
+        # Use model_dump (Pydantic V2) instead of dict
+        update_data = profile.model_dump(exclude_unset=True)
+        user_ref.update(update_data)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/login")
+async def login_check(uid: str = Depends(get_uid)):
+    """Check user status during login."""
+    return await get_user_profile(uid)
 
 @app.post("/chat")
+@app.post("/play-turn")
 async def chat_endpoint(req: ChatRequest, uid: str = Depends(get_uid)):
+    """Handle AI chat interactions and gamified turn-based logic."""
     result = get_chat_response(uid, req.message, req.state)
     if result["unlock"]:
         user_ref = db.collection("users").document(uid)
@@ -90,15 +136,14 @@ async def get_daily_drop(username: str, uid: str = Depends(get_uid)):
         
     # Load questions from local JSON instead of AI
     try:
-        with open("daily_questions.json", "r") as f:
-            data = json.load(f)
+        data = get_daily_questions()
         
         all_questions = data.get("questions", [])
         all_quests = data.get("quests", [])
         
         # Select 3 random questions and 1 random quest
         selected_questions = random.sample(all_questions, min(len(all_questions), 3))
-        selected_quest = random.choice(all_quests) if all_quests else {}
+        selected_quest = random.choice(all_quests) if all_quests else {"title": "Explore", "description": "Browse the knowledge hub", "xp_reward": 10}
         
         daily_data = {
             "daily_drop_date": today_str,
@@ -141,8 +186,15 @@ async def get_leaderboard():
 
 @app.post("/add-xp")
 async def add_xp(req: XPRequest, uid: str = Depends(get_uid)):
+    """Add XP to a user's profile."""
+    if req.points < 0:
+        raise HTTPException(status_code=400, detail="Points cannot be negative")
+        
     user_ref = db.collection("users").document(uid)
     user_doc = user_ref.get().to_dict()
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User profile not found")
+        
     current_xp = user_doc.get("gamification", {}).get("xp", 0)
     new_xp = current_xp + req.points
     user_ref.update({"gamification.xp": new_xp})
@@ -227,16 +279,19 @@ async def mark_learned(data: dict, uid: str = Depends(get_uid)):
 # Static Data Endpoints (Remain largely same but can be moved to Firestore if needed)
 @app.get("/videos/all")
 def get_all_videos():
-    with open("videos.json", "r") as f: return json.load(f)
+    global _VIDEOS_CACHE
+    if _VIDEOS_CACHE is None:
+        try:
+            with open("videos.json", "r") as f:
+                _VIDEOS_CACHE = json.load(f)
+        except Exception:
+            return {}
+    return _VIDEOS_CACHE
 
 @app.get("/videos/{module}")
 def get_videos(module: str):
-    try:
-        with open("videos.json", "r") as f:
-            all_videos = json.load(f)
-        return all_videos.get(module, [])
-    except Exception:
-        return []
+    data = get_all_videos()
+    return data.get(module, [])
 
 @app.get("/states")
 def get_states():
